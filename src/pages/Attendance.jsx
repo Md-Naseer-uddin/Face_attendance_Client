@@ -90,7 +90,7 @@ function Attendance() {
 
     // Send to backend for matching
     try {
-      const response = await fetch('/api/mark-attendance', {
+      const response = await fetch(import.meta.env.VITE_API_URL+'/api/mark-attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

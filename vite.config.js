@@ -5,11 +5,5 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'https://face-attendance-server-ivbj.onrender.com',
-        changeOrigin: true
-      }
-    }
   }
 });

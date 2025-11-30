@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import * as faceapi from 'face-api.js';
 import { loadModels, detectFaceAndGetDescriptor } from '../utils/faceDetection';
 
 function Registration() {
@@ -93,7 +92,7 @@ function Registration() {
 
     // Send to backend
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch(import.meta.env.VITE_API_URL+'/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

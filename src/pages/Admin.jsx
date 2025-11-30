@@ -12,14 +12,15 @@ function Admin() {
     fetchData();
   }, [activeTab]);
 
+  console.log('API URL:', import.meta.env.VITE_API_URL);
   const fetchData = async () => {
     try {
       if (activeTab === 'people') {
-        const res = await fetch('/api/people');
+        const res = await fetch(import.meta.env.VITE_API_URL+'/api/people');
         const data = await res.json();
         setPeople(data);
       } else {
-        const res = await fetch('/api/attendance');
+        const res = await fetch(import.meta.env.VITE_API_URL+'/api/attendance');
         const data = await res.json();
         setAttendance(data);
       }
@@ -30,7 +31,7 @@ function Admin() {
 
   const handleExport = async () => {
     try {
-      let url = '/api/export-attendance?';
+      let url = import.meta.env.VITE_API_URL+'/export-attendance?';
       
       if (exportFilter === 'day') {
         const today = new Date().toISOString().split('T')[0];
