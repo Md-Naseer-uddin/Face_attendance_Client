@@ -26,6 +26,7 @@ function Login() {
         // Store JWT token in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('role', data.role)
         
         // Redirect to registration page
         navigate('/');

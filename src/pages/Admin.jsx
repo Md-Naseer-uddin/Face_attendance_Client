@@ -31,16 +31,16 @@ function Admin() {
 
   const handleExport = async () => {
     try {
-      let url = import.meta.env.VITE_API_URL+'/export-attendance?';
+      let url = import.meta.env.VITE_API_URL+'/export-attendance';
       
       if (exportFilter === 'day') {
         const today = new Date().toISOString().split('T')[0];
-        url += `startDate=${today}&endDate=${today}`;
+        url += `?startDate=${today}&endDate=${today}`;
       } else if (exportFilter === 'month') {
         const now = new Date();
         const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
         const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        url += `startDate=${firstDay}&endDate=${lastDay}`;
+        url += `?startDate=${firstDay}&endDate=${lastDay}`;
       } else if (exportFilter === 'custom') {
         if (!startDate || !endDate) {
           alert('Please select both start and end dates');
