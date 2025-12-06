@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { loadModels, detectFaceAndGetDescriptor } from '../utils/faceDetection';
+import { api } from '../utils/api';
 
 function Registration() {
   const [userId, setUserId] = useState('');
@@ -92,28 +93,29 @@ function Registration() {
 
     // Send to backend
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL+'/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          name,
-          embedding: Array.from(avgEmbedding) // Convert Float32Array to regular array
-        })
-      });
+      const response = await api.register(
+        userId,
+        name,
+        Array.from(avgEmbedding)
+      );
 
-      const data = await response.json();
+      const data = response.data;
       
-      if (response.ok && data.success) {
+      if (data.success) {
         setStatus(`✓ Success! Registered ${name} (${userId})`);
         // Clear form after successful registration
         setUserId('');
         setName('');
         // Save for testing purposes
         localStorage.setItem('lastEmbedding', JSON.stringify(Array.from(avgEmbedding)));
-      } else {
-        // Handle specific error cases
-        if (response.status === 409) {
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      
+      // Handle specific error cases
+      if (err.response) {
+        const data = err.response.data;
+        if (err.response.status === 409) {
           // Conflict - duplicate user ID or face
           if (data.error === 'User ID already taken') {
             setStatus(`❌ User ID already taken! "${userId}" is registered to ${data.existingUser}`);
@@ -125,9 +127,9 @@ function Registration() {
         } else {
           setStatus(`❌ Error: ${data.error || 'Registration failed'}`);
         }
+      } else {
+        setStatus('❌ Network error: ' + err.message);
       }
-    } catch (err) {
-      setStatus('❌ Network error: ' + err.message);
     }
 
     setIsCapturing(false);

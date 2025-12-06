@@ -11,13 +11,19 @@ import Registration from "./pages/Registration";
 import Attendance from "./pages/Attendance";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
+import { getUser, isAdmin, logout, isAuthenticated as checkAuth } from "./utils/api";
 
 // Protected Route Component
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, adminOnly = false }) {
   const token = localStorage.getItem("token");
+  const user = getUser();
 
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && !isAdmin()) {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -51,30 +57,39 @@ function Navigation() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    logout(); // Use centralized logout function
     setIsAuthenticated(false);
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   if (!isAuthenticated) {
     return null;
   }
 
+  const user = getUser();
+  const userIsAdmin = isAdmin();
+
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <h1 className="nav-title">Bright The School</h1>
+        <h1 className="nav-title">Face Attendance System</h1>
         <div className="nav-links">
           <Link to="/" className="nav-link">
             Attendance
           </Link>
-          <Link to="/register" className="nav-link">
-            Registration
-          </Link>
-          <Link to="/admin" className="nav-link">
-            Admin
-          </Link>
+          {userIsAdmin && (
+            <>
+              <Link to="/register" className="nav-link">
+                Registration
+              </Link>
+              <Link to="/admin" className="nav-link">
+                Admin
+              </Link>
+            </>
+          )}
+          <span className="user-info">
+            {user?.name} ({user?.role})
+          </span>
           <button onClick={handleLogout} className="logout-btn">
             Logout
           </button>
@@ -88,7 +103,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app">
-        {localStorage.getItem("role") === "Admin" ? <Navigation /> : <></>}
+        <Navigation />
         <main className="main-content">
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -103,7 +118,7 @@ function App() {
             <Route
               path="/register"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute adminOnly={true}>
                   <Registration />
                 </ProtectedRoute>
               }
@@ -111,7 +126,7 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute adminOnly={true}>
                   <Admin />
                 </ProtectedRoute>
               }

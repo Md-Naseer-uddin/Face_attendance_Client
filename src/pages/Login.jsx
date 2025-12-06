@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../utils/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -15,31 +15,27 @@ function Login() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(import.meta.env.VITE_API_URL+'/api/login', {
-        email,
-        password
-      });
-
+      const response = await api.login(email, password);
       const data = response.data;
 
-      if (data.success) {
-        // Store JWT token in localStorage
+      if (data.success && data.token && data.user) {
+        // Store JWT token and user data in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('role', data.role)
         
-        // Redirect to registration page
-        navigate('/');
+        // Redirect to home page
+        navigate('/', { replace: true });
       } else {
-        setError(data.error || 'Login failed');
+        setError(data.error || 'Login failed - Invalid response from server');
       }
     } catch (err) {
       if (err.response) {
         // Server responded with error
-        setError(err.response.data.error || 'Login failed');
+        const errorMsg = err.response.data.error || err.response.data.message || 'Login failed';
+        setError(errorMsg);
       } else if (err.request) {
         // Request made but no response
-        setError('Server not responding. Please check if server is running on port 3001');
+        setError('Server not responding. Please ensure the server is running on port 3001.');
       } else {
         setError('Network error: ' + err.message);
       }
@@ -51,7 +47,7 @@ function Login() {
   return (
     <div className="page login-page">
       <div className="card login-card">
-        <h2>Admin Login</h2>
+        <h2>Login</h2>
         <p className="login-subtitle">Face Attendance System</p>
         
         <form onSubmit={handleSubmit} className="login-form">

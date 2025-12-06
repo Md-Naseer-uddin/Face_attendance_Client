@@ -38,7 +38,8 @@ body {
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .nav-link {
@@ -50,6 +51,15 @@ body {
 
 .nav-link:hover {
   color: #667eea;
+}
+
+.user-info {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  background: #f7fafc;
+  border-radius: 6px;
 }
 
 /* Main content */

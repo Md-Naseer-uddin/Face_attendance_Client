@@ -1,9 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { loadModels, detectFaceAndGetDescriptor } from '../utils/faceDetection';
-import { runLivenessCheck } from '../utils/livenessDetection';
 import { runSimpleLivenessCheck } from '../utils/livenessDetection';
-
-
+import { api } from '../utils/api';
 
 function Attendance() {
   const [status, setStatus] = useState('');
@@ -63,7 +61,6 @@ function Attendance() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Run liveness detection
-    // const livenessResult = await runLivenessCheck(videoRef.current, canvasRef.current, setStatus);
     const livenessResult = await runSimpleLivenessCheck(videoRef.current, canvasRef.current, setStatus);
     
     if (!livenessResult.passed) {
@@ -90,18 +87,14 @@ function Attendance() {
 
     // Send to backend for matching
     try {
-      const response = await fetch(import.meta.env.VITE_API_URL+'/api/mark-attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embedding: Array.from(descriptor),
-          livenessScore: livenessResult.score
-        })
-      });
+      const response = await api.markAttendance(
+        Array.from(descriptor),
+        livenessResult.score
+      );
 
-      const data = await response.json();
+      const data = response.data;
       
-      if (response.ok && data.success) {
+      if (data.success) {
         // Show confirmation modal instead of directly marking attendance
         setPendingAttendance({
           name: data.name,
@@ -116,7 +109,9 @@ function Attendance() {
         setStatus(`Failed: ${data.error || 'No match found'}`);
       }
     } catch (err) {
-      setStatus('Network error: ' + err.message);
+      const errorMsg = err.response?.data?.error || err.message;
+      setResult({ success: false });
+      setStatus('Failed: ' + errorMsg);
     }
 
     setIsChecking(false);

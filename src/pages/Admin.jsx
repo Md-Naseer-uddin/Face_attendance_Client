@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api, isAdmin } from '../utils/api';
 
 function Admin() {
   const [people, setPeople] = useState([]);
@@ -12,45 +13,47 @@ function Admin() {
     fetchData();
   }, [activeTab]);
 
-  console.log('API URL:', import.meta.env.VITE_API_URL);
   const fetchData = async () => {
     try {
       if (activeTab === 'people') {
-        const res = await fetch(import.meta.env.VITE_API_URL+'/api/people');
-        const data = await res.json();
-        setPeople(data);
+        const res = await api.getPeople();
+        setPeople(res.data);
       } else {
-        const res = await fetch(import.meta.env.VITE_API_URL+'/api/attendance');
-        const data = await res.json();
-        setAttendance(data);
+        const res = await api.getAttendance();
+        setAttendance(res.data);
       }
     } catch (err) {
       console.error('Error fetching data:', err);
+      if (err.response?.status === 403) {
+        alert('Admin access required');
+      }
     }
   };
 
   const handleExport = async () => {
     try {
-      let url = import.meta.env.VITE_API_URL+'/export-attendance';
+      let startDateParam = null;
+      let endDateParam = null;
       
       if (exportFilter === 'day') {
         const today = new Date().toISOString().split('T')[0];
-        url += `?startDate=${today}&endDate=${today}`;
+        startDateParam = today;
+        endDateParam = today;
       } else if (exportFilter === 'month') {
         const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        url += `?startDate=${firstDay}&endDate=${lastDay}`;
+        startDateParam = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        endDateParam = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
       } else if (exportFilter === 'custom') {
         if (!startDate || !endDate) {
           alert('Please select both start and end dates');
           return;
         }
-        url += `startDate=${startDate}&endDate=${endDate}`;
+        startDateParam = startDate;
+        endDateParam = endDate;
       }
 
-      const res = await fetch(url);
-      const data = await res.json();
+      const res = await api.exportAttendance(startDateParam, endDateParam);
+      const data = res.data;
 
       if (data.length === 0) {
         alert('No attendance records found for the selected period');
